@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="theme-color" content="#07090d">
+<meta name="description" content="FuelTrack — controle de combustível, autonomia e modo trabalho.">
+<title>FuelTrack — Controle de Combustível</title>
+<style>
+:root{--bg:#07090d;--card:#10141c;--card2:#151a24;--text:#f4f7fb;--muted:#8e98a8;--line:#242b38;--accent:#42e695;--accent2:#20c87a;--danger:#ff5f6d;--warn:#ffbf47;--blue:#5da9ff;--shadow:0 14px 40px rgba(0,0,0,.28)}
+*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:radial-gradient(circle at 80% -10%,#143525 0,transparent 32%),var(--bg);color:var(--text);font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif}button,input,select{font:inherit}button{cursor:pointer;border:0}.app{max-width:760px;margin:auto;padding-bottom:90px}.top{position:sticky;top:0;z-index:20;background:rgba(7,9,13,.86);backdrop-filter:blur(16px);border-bottom:1px solid var(--line);padding:16px}.brand{display:flex;align-items:center;justify-content:space-between}.brand h1{font-size:21px;margin:0;font-weight:850;letter-spacing:-.5px}.brand h1 span{color:var(--accent)}.status{font-size:11px;color:var(--accent);background:rgba(66,230,149,.1);padding:7px 10px;border-radius:999px}.hero{padding:22px 16px 10px}.hero h2{font-size:30px;line-height:1.05;margin:0 0 8px}.hero p{margin:0;color:var(--muted)}.tabs{display:flex;gap:8px;padding:14px 16px;overflow:auto;scrollbar-width:none}.tabs::-webkit-scrollbar{display:none}.tab{white-space:nowrap;padding:11px 14px;border-radius:12px;background:var(--card);color:var(--muted);border:1px solid var(--line)}.tab.active{background:var(--accent);color:#06130c;border-color:var(--accent);font-weight:800}.section{padding:10px 16px}.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:11px}.card{background:linear-gradient(145deg,var(--card2),var(--card));border:1px solid var(--line);border-radius:18px;padding:16px;box-shadow:var(--shadow)}.label{font-size:12px;color:var(--muted);margin-bottom:8px}.value{font-size:25px;font-weight:850;letter-spacing:-.7px}.small{font-size:12px;color:var(--muted);margin-top:5px}.wide{grid-column:1/-1}.green{color:var(--accent)}.red{color:var(--danger)}.yellow{color:var(--warn)}.blue{color:var(--blue)}.progress{height:10px;background:#252b35;border-radius:99px;overflow:hidden;margin-top:12px}.progress>i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--accent2),#9af7c8);border-radius:99px;transition:.35s}.section-title{display:flex;justify-content:space-between;align-items:center;margin:10px 0 12px}.section-title h3{margin:0;font-size:18px}.section-title span{font-size:11px;color:var(--muted)}.form{display:grid;gap:11px}.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}.field label{display:block;font-size:12px;color:var(--muted);margin:0 0 6px}.field input,.field select{width:100%;padding:13px;border-radius:12px;border:1px solid var(--line);background:#0b0f15;color:var(--text);outline:none}.field input:focus,.field select:focus{border-color:var(--accent)}.btn{width:100%;padding:14px;border-radius:13px;background:var(--accent);color:#06130c;font-weight:850}.btn.secondary{background:#202733;color:var(--text);border:1px solid var(--line)}.btn.danger{background:rgba(255,95,109,.12);color:var(--danger);border:1px solid rgba(255,95,109,.25)}.actions{display:grid;grid-template-columns:1fr 1fr;gap:9px}.notice{padding:14px;border-radius:14px;background:rgba(66,230,149,.08);border:1px solid rgba(66,230,149,.18);font-size:13px;line-height:1.45}.notice.warn{background:rgba(255,191,71,.08);border-color:rgba(255,191,71,.2)}.notice.danger{background:rgba(255,95,109,.08);border-color:rgba(255,95,109,.2)}.hidden{display:none!important}.result{margin-top:10px;padding:14px;border:1px dashed #35404f;border-radius:14px;background:#0b0f15}.history-item{display:flex;justify-content:space-between;gap:12px;padding:13px 0;border-bottom:1px solid var(--line)}.history-item:last-child{border-bottom:0}.history-item b{font-size:14px}.history-item small{color:var(--muted)}.empty{text-align:center;padding:28px 8px;color:var(--muted)}.bottom{position:fixed;z-index:30;bottom:0;left:0;right:0;background:rgba(8,10,14,.94);backdrop-filter:blur(18px);border-top:1px solid var(--line);display:flex;justify-content:center}.bottom-inner{width:760px;display:grid;grid-template-columns:repeat(4,1fr);padding:8px 10px}.navbtn{background:none;color:var(--muted);padding:8px 3px;font-size:11px}.navbtn strong{display:block;font-size:19px;margin-bottom:3px}.navbtn.active{color:var(--accent)}.pill{display:inline-block;padding:5px 8px;border-radius:999px;font-size:10px;background:#202733;color:var(--muted)}.two{display:grid;grid-template-columns:1fr 1fr;gap:10px}.kpi{font-size:13px;color:var(--muted);display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--line)}.kpi:last-child{border:0}.kpi b{color:var(--text)}@media(min-width:650px){.app{padding-left:4px;padding-right:4px}.hero{padding-top:30px}.grid{grid-template-columns:repeat(4,1fr)}.grid .wide{grid-column:1/-1}.two{grid-template-columns:1fr 1fr}}
+</style>
+</head>
+<body>
+<div class="app">
+<header class="top"><div class="brand"><h1>⛽ Fuel<span>Track</span></h1><div class="status">● Salvo no aparelho</div></div></header>
+
+<main>
+<section class="hero">
+<h2>Seu combustível sob controle.</h2>
+<p>Calcule autonomia, custos, distância e acompanhe seu trabalho.</p>
+</section>
+
+<div class="tabs">
+<button class="tab active" data-page="home">Resumo</button>
+<button class="tab" data-page="work">Modo Trabalho</button>
+<button class="tab" data-page="calc">Calculadora</button>
+<button class="tab" data-page="history">Histórico</button>
+</div>
+
+<section id="home" class="page section">
+<div class="card wide" style="margin-bottom:11px">
+<div class="section-title"><h3>🚗 <span id="vehicleName">Meu veículo</span></h3><span id="fuelBadge" class="pill">Gasolina</span></div>
+<div class="two">
+<div><div class="label">Quanto faz no uso atual</div><div class="value green" id="currentConsumption">0 km/L</div></div>
+<div><div class="label">KM do veículo</div><div class="value" id="currentOdo">0 km</div></div>
+</div>
+</div>
+<div class="grid">
+<div class="card"><div class="label">⛽ Litros disponíveis</div><div class="value green" id="hLiters">0,00 L</div><div class="small">estimativa atual</div></div>
+<div class="card"><div class="label">📍 Autonomia</div><div class="value" id="hRange">0 km</div><div class="small">com o combustível disponível</div></div>
+<div class="card"><div class="label">💰 Custo / km</div><div class="value yellow" id="hCostKm">R$ 0,00</div><div class="small">baseado no consumo</div></div>
+<div class="card"><div class="label">⏱️ Tempo estimado</div><div class="value blue" id="hTime">0h 00</div><div class="small">na velocidade média</div></div>
+<div class="card wide"><div class="section-title"><h3>⛽ Combustível atual</h3><span id="fuelPercent">0%</span></div><div class="progress"><i id="fuelBar"></i></div><div class="small" id="fuelStatus">Informe seu combustível abaixo.</div></div>
+</div>
+
+<div class="section-title"><h3>⛽ Registrar abastecimento</h3><span>base para cálculos precisos</span></div>
+<div class="card form">
+<div class="row">
+<div class="field"><label>KM no momento do abastecimento</label><input id="refuelKm" type="number" step="0.1" min="0" placeholder="50000"></div>
+<div class="field"><label>Litros abastecidos</label><input id="refuelLiters" type="number" step="0.01" min="0" placeholder="20"></div>
+</div>
+<div class="row">
+<div class="field"><label>Valor pago (R$)</label><input id="refuelValue" type="number" step="0.01" min="0" placeholder="130"></div>
+<div class="field"><label>Combustível</label><select id="refuelFuel"><option value="gasolina">Gasolina</option><option value="etanol">Etanol</option></select></div>
+</div>
+<div class="field"><label>Observação</label><input id="refuelNote" type="text" placeholder="Posto, tanque cheio, etc."></div>
+<button class="btn" id="addRefuelBtn">⛽ Salvar abastecimento</button>
+<div class="result" id="refuelResult">Registre abastecimentos para calcular consumo real entre um abastecimento e outro.</div>
+</div>
+
+<div class="section-title"><h3>Configuração rápida</h3><span>fica salva automaticamente</span></div>
+<div class="card form">
+<div class="row">
+<div class="field"><label>🚗 Veículo</label><input id="vehicle" type="text" placeholder="Ex.: Onix 1.0"></div>
+<div class="field"><label>📍 KM atual</label><input id="odometer" type="number" step="0.1" min="0" placeholder="50000"></div>
+</div>
+<div class="row">
+<div class="field"><label>⛽ Combustível</label><select id="fuelType"><option value="gasolina">Gasolina</option><option value="etanol">Etanol</option></select></div>
+<div class="field"><label>Preço (R$/L)</label><input id="price" type="number" step="0.01" min="0" placeholder="6,50"></div>
+</div>
+<div class="row">
+<div class="field"><label>🏙️ Consumo cidade (km/L)</label><input id="cityConsumption" type="number" step="0.1" min="0" placeholder="10"></div>
+<div class="field"><label>🛣️ Consumo estrada (km/L)</label><input id="roadConsumption" type="number" step="0.1" min="0" placeholder="14"></div>
+</div>
+<div class="row">
+<div class="field"><label>🔄 Consumo misto (km/L)</label><input id="mixedConsumption" type="number" step="0.1" min="0" placeholder="12"></div>
+<div class="field"><label>🛢️ Capacidade do tanque (L)</label><input id="tankCapacity" type="number" step="0.1" min="0" placeholder="50"></div>
+</div>
+<div class="row">
+<div class="field"><label>⛽ Litros no tanque agora</label><input id="tankLiters" type="number" step="0.01" min="0" placeholder="20"></div>
+<div class="field"><label>🚦 Tipo de uso</label><select id="useType"><option value="mixed">Misto</option><option value="city">Cidade</option><option value="road">Estrada</option></select></div>
+</div>
+<button class="btn" id="saveSettingsBtn">Salvar configuração</button>
+</div>
+</section>
+
+<section id="work" class="page section hidden">
+<div class="card">
+<div class="section-title"><h3>🎯 Meta do dia</h3><span id="workDate"></span></div>
+<div class="grid">
+<div><div class="label">Faturamento</div><div class="value green" id="wRevenue">R$ 0,00</div></div>
+<div><div class="label">Distância</div><div class="value" id="wKm">0 km</div></div>
+<div><div class="label">Combustível gasto</div><div class="value yellow" id="wFuelCost">R$ 0,00</div></div>
+<div><div class="label">Líquido</div><div class="value green" id="wNet">R$ 0,00</div></div>
+</div>
+<div class="progress"><i id="goalBar"></i></div>
+<div class="small" id="goalText">Configure uma meta abaixo.</div>
+</div>
+
+<div class="section-title"><h3>Registrar trabalho</h3><span>atualização manual</span></div>
+<div class="card form">
+<div class="row">
+<div class="field"><label>Faturamento da corrida/turno (R$)</label><input id="addRevenue" type="number" step="0.01" min="0" placeholder="30"></div>
+<div class="field"><label>Km percorridos</label><input id="addKm" type="number" step="0.1" min="0" placeholder="20"></div>
+</div>
+<div class="row">
+<div class="field"><label>Litros consumidos</label><input id="addLiters" type="number" step="0.01" min="0" placeholder="0,6"></div>
+<div class="field"><label>Horas trabalhadas</label><input id="addHours" type="number" step="0.1" min="0" placeholder="1"></div>
+</div>
+<button class="btn" id="addWorkBtn">+ Registrar</button>
+<div class="actions"><button class="btn secondary" id="startShiftBtn">▶ Iniciar turno</button><button class="btn secondary" id="finishShiftBtn">■ Fechar turno</button></div>
+<div class="result" id="shiftTimer">Turno não iniciado.</div>
+</div>
+
+<div class="section-title"><h3>🎯 Configurar meta</h3><span>por dia</span></div>
+<div class="card form">
+<div class="row">
+<div class="field"><label>Meta de faturamento (R$)</label><input id="goalRevenue" type="number" step="0.01" min="0" placeholder="300"></div>
+<div class="field"><label>Meta de distância (km)</label><input id="goalKm" type="number" step="0.1" min="0" placeholder="250"></div>
+</div>
+<div class="row">
+<div class="field"><label>Horas que pretende trabalhar</label><input id="goalHours" type="number" step="0.1" min="0" placeholder="8"></div>
+<div class="field"><label>Reserva para abastecer (km)</label><input id="reserveKm" type="number" step="1" min="0" placeholder="30"></div>
+</div>
+<button class="btn" id="saveGoalsBtn">Salvar metas</button>
+</div>
+
+<div class="section-title"><h3>🤖 Assistente de abastecimento</h3></div>
+<div id="fuelAssistant" class="notice">Preencha consumo, preço e metas para receber uma recomendação.</div>
+</section>
+
+<section id="calc" class="page section hidden">
+<div class="section-title"><h3>🧮 Calculadora</h3><span>resultados instantâneos</span></div>
+
+<div class="card form">
+<div class="section-title"><h3>Quanto litros consigo comprar?</h3></div>
+<div class="row"><div class="field"><label>Valor disponível (R$)</label><input id="money" type="number" step="0.01" min="0" placeholder="50"></div><div class="field"><label>Preço por litro</label><input id="calcPrice" type="number" step="0.01" min="0" placeholder="6,50"></div></div>
+<button class="btn" id="calcLitersBtn">Calcular litros</button><div id="litersResult" class="result hidden"></div>
+</div>
+
+<div class="card form">
+<div class="section-title"><h3>Quanto custa uma distância?</h3></div>
+<div class="row"><div class="field"><label>Distância (km)</label><input id="distance" type="number" step="0.1" min="0" placeholder="100"></div><div class="field"><label>Consumo (km/L)</label><input id="distanceConsumption" type="number" step="0.1" min="0" placeholder="35"></div></div>
+<div class="row"><div class="field"><label>Preço (R$/L)</label><input id="distancePrice" type="number" step="0.01" min="0" placeholder="6,50"></div><div class="field"><label>Velocidade média (km/h)</label><input id="speed" type="number" step="1" min="0" placeholder="40"></div></div>
+<button class="btn" id="calcTripBtn">Calcular viagem</button><div id="tripResult" class="result hidden"></div>
+</div>
+
+<div class="card form">
+<div class="section-title"><h3>⛽ Quanto abastecer para trabalhar?</h3></div>
+<div class="row"><div class="field"><label>Km que pretende rodar</label><input id="workKmCalc" type="number" step="0.1" min="0" placeholder="140"></div><div class="field"><label>Consumo (km/L)</label><input id="workCons" type="number" step="0.1" min="0" placeholder="35"></div></div>
+<div class="row"><div class="field"><label>Preço (R$/L)</label><input id="workPrice" type="number" step="0.01" min="0" placeholder="6,50"></div><div class="field"><label>Litros que já possui</label><input id="workHave" type="number" step="0.01" min="0" placeholder="1"></div></div>
+<button class="btn" id="calcWorkFuelBtn">Recomendar abastecimento</button><div id="workFuelResult" class="result hidden"></div>
+</div>
+</section>
+
+<section id="history" class="page section hidden">
+<div class="section-title"><h3>📊 Histórico</h3><button class="pill" id="clearHistoryBtn">Apagar tudo</button></div>
+<div class="card">
+<div id="historyList"></div>
+</div>
+<div class="section-title"><h3>⛽ Abastecimentos</h3><span>últimos registros</span></div>
+<div class="card"><div id="refuelHistory"></div></div>
+</section>
+</main>
+</div>
+
+<nav class="bottom"><div class="bottom-inner">
+<button class="navbtn active" data-page="home"><strong>⌂</strong>Resumo</button>
+<button class="navbtn" data-page="work"><strong>🚗</strong>Trabalho</button>
+<button class="navbtn" data-page="calc"><strong>🧮</strong>Calcular</button>
+<button class="navbtn" data-page="history"><strong>📊</strong>Histórico</button>
+</div></nav>
+
+<script>
+const KEY='fueltrack_v2';
+let state=JSON.parse(localStorage.getItem(KEY)||'null')||{
+ settings:{vehicle:'Meu veículo',odometer:0,fuelType:'gasolina',price:6.5,cityConsumption:10,roadConsumption:14,mixedConsumption:12,tankLiters:0,tankCapacity:50,useType:'mixed'},
+ goals:{revenue:300,km:250,hours:8,reserveKm:30},
+ work:{revenue:0,km:0,liters:0,hours:0,start:null,elapsed:0},
+ history:[],refuels:[]
+};
+state.settings=Object.assign({vehicle:'Meu veículo',odometer:0,fuelType:'gasolina',price:6.5,cityConsumption:10,roadConsumption:14,mixedConsumption:12,tankLiters:0,tankCapacity:50,useType:'mixed'},state.settings||{});
+state.goals=Object.assign({revenue:300,km:250,hours:8,reserveKm:30},state.goals||{});
+state.work=Object.assign({revenue:0,km:0,liters:0,hours:0,start:null,elapsed:0},state.work||{});
+if(!Array.isArray(state.history))state.history=[];
+if(!Array.isArray(state.refuels))state.refuels=[];
+function money(v){return Number(v||0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});}
+function num(v){return Number(v)||0}
+function save(){localStorage.setItem(KEY,JSON.stringify(state))}
+function val(id){const e=document.getElementById(id); if(!e)return 0; return num(String(e.value).replace(',','.'))}
+function set(id,v){const e=document.getElementById(id);if(e)e.value=v??''}
+function fmt(n,d=2){return Number(n||0).toLocaleString('pt-BR',{minimumFractionDigits:d,maximumFractionDigits:d)}
+function esc(s){return String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
+function fuelName(x){return x==='etanol'?'Etanol':'Gasolina'}
+function getConsumption(){const s=state.settings;return s.useType==='city'?num(s.cityConsumption):s.useType==='road'?num(s.roadConsumption):num(s.mixedConsumption)}
+function formatHours(h){if(!isFinite(h)||h<=0)return '0h 00';const hours=Math.floor(h),mins=Math.round((h-hours)*60);if(mins===60)return (hours+1)+'h 00';return hours+'h '+String(mins).padStart(2,'0')}
+function showPage(page){document.querySelectorAll('.page').forEach(x=>x.classList.toggle('hidden',x.id!==page));document.querySelectorAll('.tab,.navbtn').forEach(x=>x.classList.toggle('active',x.dataset.page===page));window.scrollTo({top:0,behavior:'smooth'})}
+function wire(){
+document.querySelectorAll('[data-page]').forEach(b=>b.addEventListener('click',()=>showPage(b.dataset.page)));
+const bind=(id,fn)=>{const e=document.getElementById(id);if(e)e.addEventListener('click',fn)};
+bind('saveSettingsBtn',saveSettings);bind('addRefuelBtn',addRefuel);bind('saveGoalsBtn',saveGoals);
+bind('addWorkBtn',addWork);bind('startShiftBtn',startShift);bind('finishShiftBtn',finishShift);
+bind('calcLitersBtn',calcLiters);bind('calcTripBtn',calcTrip);bind('calcWorkFuelBtn',calcWorkFuel);bind('clearHistoryBtn',clearHistory);
+}
+function load(){
+ const s=state.settings;
+ ['vehicle','odometer','fuelType','price','cityConsumption','roadConsumption','mixedConsumption','tankLiters','tankCapacity','useType'].forEach(k=>set(k,s[k]));
+ set('goalRevenue',state.goals.revenue);set('goalKm',state.goals.km);set('goalHours',state.goals.hours);set('reserveKm',state.goals.reserveKm);
+ set('workDate',new Date().toLocaleDateString('pt-BR'));
+ set('refuelFuel',s.fuelType);
+ updateHome();updateWork();renderHistory();renderRefuels();
+}
+function saveSettings(){
+ state.settings={vehicle:document.getElementById('vehicle').value||'Meu veículo',odometer:val('odometer'),fuelType:document.getElementById('fuelType').value,price:val('price'),cityConsumption:val('cityConsumption'),roadConsumption:val('roadConsumption'),mixedConsumption:val('mixedConsumption'),tankLiters:val('tankLiters'),tankCapacity:val('tankCapacity'),useType:document.getElementById('useType').value};
+ save();updateHome();updateWork();alert('Configuração do veículo salva!');
+}
+function updateHome(){
+ const s=state.settings,liters=s.tankLiters,cons=getConsumption(),price=s.price,range=liters*cons,costKm=cons?price/cons:0,time=range/40;
+ document.getElementById('vehicleName').textContent=s.vehicle||'Meu veículo';
+ document.getElementById('fuelBadge').textContent=fuelName(s.fuelType)+' • '+(s.useType==='city'?'Cidade':s.useType==='road'?'Estrada':'Misto');
+ document.getElementById('currentConsumption').textContent=fmt(cons,1)+' km/L';
+ document.getElementById('currentOdo').textContent=fmt(s.odometer,0)+' km';
+ document.getElementById('hLiters').textContent=fmt(liters)+' L';
+ document.getElementById('hRange').textContent=fmt(range,0)+' km';
+ document.getElementById('hCostKm').textContent=money(costKm);
+ document.getElementById('hTime').textContent=formatHours(time);
+ let pct=s.tankCapacity?Math.min(100,liters/s.tankCapacity*100):0;
+ document.getElementById('fuelPercent').textContent=fmt(pct,0)+'%';document.getElementById('fuelBar').style.width=pct+'%';
+ const status=document.getElementById('fuelStatus'),reserve=s.goals.reserveKm||30;
+ if(!liters)status.textContent='Informe quantos litros você tem no tanque.';
+ else if(range<=reserve){status.textContent='⚠️ Pouca autonomia. Próximo abastecimento recomendado em breve.';status.className='small red'}
+ else{status.textContent='🟢 '+fuelName(s.fuelType)+': autonomia aproximada de '+fmt(range,0)+' km.';status.className='small'}
+}
+function addRefuel(){
+ const km=val('refuelKm'),liters=val('refuelLiters'),value=val('refuelValue'),fuel=document.getElementById('refuelFuel').value,note=document.getElementById('refuelNote').value;
+ if(!km||!liters){alert('Informe o KM e os litros abastecidos.');return}
+ const price=value/liters;
+ const previous=state.refuels.filter(x=>x.fuel===fuel).sort((a,b)=>a.km-b.km).filter(x=>x.km<km).pop();
+ let real='';
+ if(previous&&km>previous.km&&liters>0){const dist=km-previous.km;const realCons=dist/liters;real=' Consumo real desde o abastecimento anterior: '+fmt(realCons,2)+' km/L em '+fmt(dist,0)+' km.'}
+ state.refuels.push({date:new Date().toLocaleString('pt-BR'),km,liters,value,fuel,price,note});
+ state.settings.odometer=km;state.settings.tankLiters=liters;state.settings.fuelType=fuel;
+ if(value>0)state.settings.price=price;
+ save();set('odometer',km);set('tankLiters',liters);set('fuelType',fuel);set('price',state.settings.price);set('refuelKm','');set('refuelLiters','');set('refuelValue','');set('refuelNote','');
+ document.getElementById('refuelResult').innerHTML='✅ Abastecimento salvo. <b>'+fmt(liters,2)+' L</b> de '+fuelName(fuel)+' por <b>'+money(value)+'</b>.'+(real?'<br><span class="small">'+real+'</span>':'');
+ updateHome();updateWork();renderRefuels();
+}
+function saveGoals(){state.goals={revenue:val('goalRevenue'),km:val('goalKm'),hours:val('goalHours'),reserveKm:val('reserveKm')};save();updateWork();updateHome();alert('Metas salvas!')}
+function updateWork(){
+ const w=state.work,g=state.goals,s=state.settings,cons=getConsumption(),fuelCost=w.liters*s.price;
+ document.getElementById('wRevenue').textContent=money(w.revenue);document.getElementById('wKm').textContent=fmt(w.km,0)+' km';document.getElementById('wFuelCost').textContent=money(fuelCost);document.getElementById('wNet').textContent=money(w.revenue-fuelCost);
+ let progress=g.revenue?Math.min(100,w.revenue/g.revenue*100):Math.min(100,w.km/(g.km||1)*100);document.getElementById('goalBar').style.width=progress+'%';
+ let leftR=Math.max(0,g.revenue-w.revenue),leftKm=Math.max(0,g.km-w.km);document.getElementById('goalText').textContent=g.revenue?('Faltam '+money(leftR)+' para a meta. '+fmt(progress,0)+'% concluído.'):('Faltam '+fmt(leftKm,0)+' km para a meta.');
+ const needKm=Math.max(0,g.km-w.km),available=s.tankLiters,autonomy=available*cons,neededLiters=cons?needKm/cons:0,extra=Math.max(0,neededLiters-available),reserveLiters=cons?(g.reserveKm||30)/cons:0,rec=Math.max(extra,reserveLiters)*s.price;
+ let assistant=document.getElementById('fuelAssistant');
+ if(!s.price||!cons){assistant.className='notice';assistant.textContent='Preencha preço e consumo do veículo.'}
+ else if(needKm<=0){assistant.className='notice';assistant.innerHTML='🟢 <b>Meta de distância atingida.</b> Autonomia atual: '+fmt(autonomy,0)+' km.'}
+ else if(autonomy>=needKm+(g.reserveKm||30)){assistant.className='notice';assistant.innerHTML='🟢 <b>Não precisa abastecer agora.</b> Cobre a meta restante e mantém '+fmt(g.reserveKm||30,0)+' km de reserva.'}
+ else{assistant.className='notice warn';assistant.innerHTML='⛽ <b>Abastecimento recomendado:</b> faltam '+fmt(needKm,0)+' km. São necessários '+fmt(neededLiters,2)+' L. Para manter reserva, abasteça aproximadamente <b>'+money(rec)+'</b> de '+fuelName(s.fuelType)+'.'}
+ updateShiftTimer();
+}
+function addWork(){
+ const r=val('addRevenue'),km=val('addKm'),l=val('addLiters'),h=val('addHours');if(!r&&!km&&!l&&!h){alert('Informe pelo menos um valor.');return}
+ state.work.revenue+=r;state.work.km+=km;state.work.liters+=l;state.work.hours+=h;state.history.unshift({date:new Date().toLocaleString('pt-BR'),revenue:r,km,liters:l,hours:h,fuel:state.settings.fuelType});save();
+ ['addRevenue','addKm','addLiters','addHours'].forEach(x=>set(x,''));updateWork();renderHistory();
+}
+function startShift(){if(state.work.start){alert('O turno já está em andamento.');return}state.work.start=Date.now();save();updateShiftTimer()}
+function finishShift(){if(!state.work.start){alert('Nenhum turno em andamento.');return}state.work.elapsed+=(Date.now()-state.work.start)/3600000;state.work.start=null;save();updateShiftTimer()}
+function updateShiftTimer(){const box=document.getElementById('shiftTimer');let h=state.work.elapsed;if(state.work.start)h+=(Date.now()-state.work.start)/3600000;box.innerHTML=state.work.start?'🟢 <b>Turno em andamento:</b> '+formatHours(h)+'<br><span class="small">Tempo atualizado automaticamente.</span>':'⏱️ <b>Tempo de trabalho:</b> '+formatHours(h)}
+setInterval(()=>{if(state.work.start)updateShiftTimer()},1000);
+
+function calcLiters(){
+ const m=val('money'),p=val('calcPrice'),el=document.getElementById('litersResult');el.classList.remove('hidden');if(!m||!p){el.innerHTML='Informe o valor e o preço por litro.';return}
+ const l=m/p,km=l*getConsumption();el.innerHTML='💰 <b>'+money(m)+'</b> compram <b class="green">'+fmt(l,2)+' L</b> de '+fuelName(state.settings.fuelType)+'.<br><span class="small">Com '+fmt(getConsumption(),1)+' km/L, autonomia aproximada: <b>'+fmt(km,0)+' km</b>.</span>';
+}
+function calcTrip(){
+ const d=val('distance'),c=val('distanceConsumption'),p=val('distancePrice'),s=val('speed'),el=document.getElementById('tripResult');el.classList.remove('hidden');if(!d||!c||!p){el.innerHTML='Informe distância, consumo e preço.';return}
+ const l=d/c,cost=l*p,t=s?d/s:0;el.innerHTML='📍 <b>'+fmt(d,1)+' km</b><br>⛽ Combustível: <b>'+fmt(l,2)+' L</b><br>💰 Custo: <b class="yellow">'+money(cost)+'</b><br>⏱️ Tempo: <b class="blue">'+formatHours(t)+'</b><br>💵 Custo/km: <b>'+money(cost/d)+'</b>';
+}
+function calcWorkFuel(){
+ const d=val('workKmCalc'),c=val('workCons'),p=val('workPrice'),have=val('workHave'),el=document.getElementById('workFuelResult');el.classList.remove('hidden');if(!d||!c||!p){el.innerHTML='Informe km, consumo e preço.';return}
+ const need=d/c,extra=Math.max(0,need-have),cost=extra*p,total=need*p;el.innerHTML='🎯 Para '+fmt(d,0)+' km: <b>'+fmt(need,2)+' L</b>.<br>Já possui: <b>'+fmt(have,2)+' L</b>.<br>Falta: <b class="green">'+fmt(extra,2)+' L</b>.<br>💰 Abastecimento: <b class="yellow">'+money(cost)+'</b> de '+fuelName(state.settings.fuelType)+'.<br><span class="small">Custo total estimado: '+money(total)+'.</span>';
+}
+function renderHistory(){
+ const box=document.getElementById('historyList');if(!state.history.length){box.innerHTML='<div class="empty">Nenhum registro de trabalho ainda.</div>';return}
+ box.innerHTML=state.history.slice(0,30).map(x=>'<div class="history-item"><div><b>'+esc(x.date)+'</b><br><small>'+fmt(x.km,1)+' km • '+fmt(x.liters,2)+' L • '+formatHours(x.hours)+' • '+fuelName(x.fuel||state.settings.fuelType)+'</small></div><div style="text-align:right"><b class="green">'+money(x.revenue)+'</b><br><small>comb.: '+money(x.liters*state.settings.price)+'</small></div></div>').join('');
+}
+function renderRefuels(){
+ const box=document.getElementById('refuelHistory');if(!box)return;
+ if(!state.refuels.length){box.innerHTML='<div class="empty">Nenhum abastecimento registrado.</div>';return}
+ const arr=[...state.refuels].sort((a,b)=>b.km-a.km).slice(0,30);
+ box.innerHTML=arr.map(x=>{
+  const cons=x.km?getConsumption():0,range=x.liters*cons,end=x.km+range,reserve=Math.max(0,end-(state.goals.reserveKm||30)),time=40?range/40:0;
+  return '<div class="history-item"><div><b>'+fuelName(x.fuel)+' • '+fmt(x.liters,2)+' L</b><br><small>KM '+fmt(x.km,0)+' • '+esc(x.date)+(x.note?' • '+esc(x.note):'')+'</small></div><div style="text-align:right"><b>'+money(x.value)+'</b><br><small>até ~'+fmt(end,0)+' km<br>abastecer ~'+fmt(reserve,0)+' km</small></div></div>'
+ }).join('');
+}
+function clearHistory(){if(confirm('Apagar histórico de trabalho e abastecimentos?')){state.history=[];state.refuels=[];save();renderHistory();renderRefuels()}}
+wire();
+load();
+</script>
+</body>
+</html>
