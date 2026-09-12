@@ -4,8 +4,11 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <meta name="theme-color" content="#07090d">
-<meta name="description" content="FuelTrack PRO — Gestão de Combustível, Autonomia, GPS e Modo Trabalho">
 <title>FuelTrack PRO — Controle Inteligente de Combustível</title>
+
+<!-- Leaflet CSS para o Mapa -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css" />
+
 <style>
 :root {
   --bg: #07090d;
@@ -37,7 +40,7 @@ button { cursor: pointer; border: 0; }
 
 .app { max-width: 780px; margin: auto; padding-bottom: 90px; }
 
-/* Global Header */
+/* Header */
 .top {
   position: sticky; top: 0; z-index: 50;
   background: rgba(7, 9, 13, 0.88); backdrop-filter: blur(16px);
@@ -53,14 +56,12 @@ button { cursor: pointer; border: 0; }
 .logo h1 { font-size: 20px; margin: 0; font-weight: 850; letter-spacing: -.5px; color: #fff; }
 .logo h1 span { color: var(--accent); }
 .user-badge { display: flex; align-items: center; gap: 8px; }
-.plan-tag {
-  font-size: 10px; font-weight: 800; padding: 4px 8px; border-radius: 999px; text-transform: uppercase;
-}
+.plan-tag { font-size: 10px; font-weight: 800; padding: 4px 8px; border-radius: 999px; text-transform: uppercase; }
 .plan-free { background: rgba(142, 152, 168, 0.15); color: var(--muted); border: 1px solid var(--muted); }
 .plan-premium { background: linear-gradient(90deg, #ffbf47, #f59e0b); color: #000; font-weight: 900; }
 .btn-logout { background: transparent; color: var(--muted); font-size: 12px; padding: 4px; }
 
-/* Auth Screen */
+/* Auth Modal */
 .auth-overlay {
   position: fixed; inset: 0; z-index: 100; background: var(--bg);
   display: flex; align-items: center; justify-content: center; padding: 20px;
@@ -73,7 +74,7 @@ button { cursor: pointer; border: 0; }
 .auth-tab { flex: 1; padding: 10px; background: none; color: var(--muted); font-weight: 600; border-bottom: 2px solid transparent; }
 .auth-tab.active { color: var(--accent); border-color: var(--accent); }
 
-/* Layout & Elements */
+/* Main Elements */
 .hero { padding: 20px 18px 8px; }
 .hero h2 { font-size: 26px; margin: 0 0 6px; letter-spacing: -.5px; }
 .hero p { margin: 0; color: var(--muted); font-size: 14px; }
@@ -101,7 +102,6 @@ button { cursor: pointer; border: 0; }
 .red { color: var(--danger); }
 .yellow { color: var(--warn); }
 .blue { color: var(--blue); }
-.purple { color: var(--purple); }
 
 .progress { height: 10px; background: #252b35; border-radius: 99px; overflow: hidden; margin-top: 10px; }
 .progress > i { display: block; height: 100%; width: 0%; background: linear-gradient(90deg, var(--accent2), var(--accent)); border-radius: 99px; transition: .35s; }
@@ -122,7 +122,7 @@ button { cursor: pointer; border: 0; }
 .btn { width: 100%; padding: 14px; border-radius: 12px; background: var(--accent); color: #06130c; font-weight: 850; transition: opacity .2s; }
 .btn:active { opacity: .8; }
 .btn.secondary { background: #202733; color: var(--text); border: 1px solid var(--line); }
-.btn.premium-btn { background: linear-gradient(90deg, #ffbf47, #f59e0b); color: #000; }
+.btn.danger { background: rgba(255,95,109,.15); color: var(--danger); border: 1px solid rgba(255,95,109,.3); }
 
 .actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 .notice { padding: 12px 14px; border-radius: 12px; background: rgba(66,230,149,.08); border: 1px solid rgba(66,230,149,.18); font-size: 13px; line-height: 1.45; }
@@ -131,8 +131,8 @@ button { cursor: pointer; border: 0; }
 .hidden { display: none !important; }
 .result { margin-top: 10px; padding: 12px; border: 1px dashed #35404f; border-radius: 12px; background: #0b0f15; font-size: 13px; line-height: 1.5; }
 
-/* GPS Card */
-.gps-box { background: linear-gradient(145deg, #121929, #0d121d); border: 1px solid rgba(93,169,255,0.3); }
+/* GPS Container & Mapa */
+#mapContainer { height: 260px; width: 100%; border-radius: 14px; border: 1px solid var(--line); margin-top: 10px; z-index: 1; }
 .gps-status { display: flex; align-items: center; gap: 8px; font-size: 12px; }
 .pulse { width: 8px; height: 8px; border-radius: 50%; background: var(--blue); box-shadow: 0 0 10px var(--blue); animation: pulse 1.5s infinite; }
 @keyframes pulse { 0%{ opacity: .3; } 50%{ opacity: 1; } 100%{ opacity: .3; } }
@@ -154,41 +154,29 @@ button { cursor: pointer; border: 0; }
 </head>
 <body>
 
-<!-- AUTH OVERLAY -->
+<!-- AUTH MODAL -->
 <div id="authOverlay" class="auth-overlay">
   <div class="auth-box">
     <div class="logo" style="justify-content: center; margin-bottom: 20px;">
       <div class="logo-icon">⛽</div>
       <h1>Fuel<span>Track</span> PRO</h1>
     </div>
-    
     <div class="auth-tabs">
       <button class="auth-tab active" onclick="switchAuthTab('login')">Entrar</button>
       <button class="auth-tab" onclick="switchAuthTab('register')">Cadastrar</button>
     </div>
-
     <form id="authForm" onsubmit="handleAuth(event)" class="form">
-      <div class="field">
-        <label>E-mail</label>
-        <input type="email" id="authEmail" required placeholder="seu@email.com">
+      <div class="field"><label>E-mail</label><input type="email" id="authEmail" required placeholder="seu@email.com"></div>
+      <div class="field"><label>Senha</label><input type="password" id="authPass" required placeholder="••••••••"></div>
+      <div class="field" id="planSelectField" style="display:none;"><label>Plano</label>
+        <select id="authPlan"><option value="premium">Versão PRO / Premium Completa</option><option value="free">Versão Free</option></select>
       </div>
-      <div class="field">
-        <label>Senha</label>
-        <input type="password" id="authPass" required placeholder="••••••••">
-      </div>
-      <div class="field" id="planSelectField">
-        <label>Plano de Acesso</label>
-        <select id="authPlan">
-          <option value="free">Versão Free (Básica)</option>
-          <option value="premium">Versão PRO / Premium (Com GPS e Telemetria)</option>
-        </select>
-      </div>
-      <button type="submit" class="btn" id="authBtn">Entrar na Conta</button>
+      <button type="submit" class="btn" id="authBtn">Entrar no Sistema</button>
     </form>
   </div>
 </div>
 
-<!-- APP WRAPPER -->
+<!-- APP MAIN STRUCTURE -->
 <div class="app">
   <header class="top">
     <div class="brand-bar">
@@ -197,8 +185,8 @@ button { cursor: pointer; border: 0; }
         <h1>Fuel<span>Track</span></h1>
       </a>
       <div class="user-badge">
-        <span id="userPlanTag" class="plan-tag plan-free">FREE</span>
-        <button class="btn-logout" onclick="logout()" title="Sair">Sair</button>
+        <span id="userPlanTag" class="plan-tag plan-premium">PRO</span>
+        <button class="btn-logout" onclick="logout()">Sair</button>
       </div>
     </div>
   </header>
@@ -206,13 +194,13 @@ button { cursor: pointer; border: 0; }
   <main>
     <section class="hero">
       <h2>Seu combustível sob controle.</h2>
-      <p>Acompanhe consumo, abastecimentos, rotas via GPS e métricas de trabalho.</p>
+      <p>Navegação com mapa real, metas diárias de trabalho e cálculo de autonomia preciso.</p>
     </section>
 
     <div class="tabs">
       <button class="tab active" data-page="home">Resumo</button>
-      <button class="tab" data-page="gps">GPS Rastreio</button>
-      <button class="tab" data-page="work">Trabalho</button>
+      <button class="tab" data-page="gps">Mapa & GPS</button>
+      <button class="tab" data-page="work">Modo Trabalho</button>
       <button class="tab" data-page="calc">Calculadora</button>
       <button class="tab" data-page="history">Histórico</button>
     </div>
@@ -231,19 +219,19 @@ button { cursor: pointer; border: 0; }
       </div>
 
       <div class="grid">
-        <div class="card"><div class="label">⛽ Litros no Tanque</div><div class="value green" id="hLiters">0 L</div><div class="small">estimativa</div></div>
-        <div class="card"><div class="label">📍 Autonomia Real</div><div class="value" id="hRange">0 km</div><div class="small">distância restante</div></div>
+        <div class="card"><div class="label">⛽ Litros no Tanque</div><div class="value green" id="hLiters">0 L</div><div class="small">estimativa atual</div></div>
+        <div class="card"><div class="label">📍 Autonomia Real</div><div class="value" id="hRange">0 km</div><div class="small">distância limite</div></div>
         <div class="card"><div class="label">💰 Custo por KM</div><div class="value yellow" id="hCostKm">R$ 0,00</div><div class="small">baseado na média</div></div>
         <div class="card"><div class="label">⏱️ Tempo Estimado</div><div class="value blue" id="hTime">0h 00</div><div class="small">a 40 km/h médio</div></div>
         
         <div class="card wide">
           <div class="section-title"><h3>⛽ Nível Estimado do Tanque</h3><span id="fuelPercent">0%</span></div>
           <div class="progress"><i id="fuelBar"></i></div>
-          <div class="small" id="fuelStatus" style="margin-top:8px;">Aguardando dados...</div>
+          <div class="small" id="fuelStatus" style="margin-top:8px;">Carregando status...</div>
         </div>
       </div>
 
-      <div class="section-title"><h3>⛽ Novo Abastecimento</h3><span>registre para atualizar a média</span></div>
+      <div class="section-title"><h3>⛽ Novo Abastecimento</h3><span>atualiza tanque e histórico</span></div>
       <div class="card form">
         <div class="row">
           <div class="field"><label>KM no Painel</label><input id="refuelKm" type="number" placeholder="Ex: 50000"></div>
@@ -259,135 +247,114 @@ button { cursor: pointer; border: 0; }
         <div class="result hidden" id="refuelResult"></div>
       </div>
 
-      <div class="section-title"><h3>⚙️ Configurações do Veículo</h3></div>
+      <div class="section-title"><h3>⚙️ Configuração do Veículo</h3></div>
       <div class="card form">
         <div class="row">
-          <div class="field"><label>Nome do Veículo</label><input id="vehicle" type="text" placeholder="Ex: Onix 1.0"></div>
-          <div class="field"><label>KM Inicial</label><input id="odometer" type="number" placeholder="Ex: 50000"></div>
+          <div class="field"><label>Veículo</label><input id="vehicle" type="text" placeholder="Ex: Onix 1.0"></div>
+          <div class="field"><label>KM Atual</label><input id="odometer" type="number" placeholder="Ex: 50000"></div>
         </div>
         <div class="row">
-          <div class="field"><label>Combustível Padrão</label>
+          <div class="field"><label>Combustível</label>
             <select id="fuelType"><option value="gasolina">Gasolina</option><option value="etanol">Etanol</option></select>
           </div>
-          <div class="field"><label>Preço por Litro (R$)</label><input id="price" type="number" step="0.01" placeholder="Ex: 5.80"></div>
+          <div class="field"><label>Preço/Litro (R$)</label><input id="price" type="number" step="0.01" placeholder="Ex: 5.80"></div>
         </div>
         <div class="row">
           <div class="field"><label>Consumo Misto (km/L)</label><input id="mixedConsumption" type="number" step="0.1" placeholder="Ex: 12"></div>
           <div class="field"><label>Capacidade Tanque (L)</label><input id="tankCapacity" type="number" placeholder="Ex: 50"></div>
         </div>
         <div class="row">
-          <div class="field"><label>Litros Atuais no Tanque</label><input id="tankLiters" type="number" step="0.1" placeholder="Ex: 20"></div>
-          <div class="field"><label>Tipo de Uso</label>
+          <div class="field"><label>Litros no Tanque Agora</label><input id="tankLiters" type="number" step="0.1" placeholder="Ex: 20"></div>
+          <div class="field"><label>Modo Uso</label>
             <select id="useType"><option value="mixed">Misto</option><option value="city">Cidade</option><option value="road">Estrada</option></select>
           </div>
         </div>
-        <button class="btn secondary" onclick="saveSettings()">Salvar Veículo</button>
+        <button class="btn secondary" onclick="saveSettings()">Salvar Configurações</button>
       </div>
     </section>
 
-    <!-- GPS PAGE (PREMIUM FEATURE) -->
+    <!-- GPS PAGE (COM MAPA OPENSTREETMAP) -->
     <section id="gps" class="page section hidden">
-      <div id="gpsPremiumBlock" class="card notice warn hidden">
-        <b>⭐ Recurso Exclusivo Premium!</b><br>
-        O Rastreamento de GPS em tempo real e cálculo de velocidade/telemetria é exclusivo do plano PRO.
-        <br><br>
-        <button class="btn premium-btn" onclick="upgradeToPremium()">Fazer Upgrade para Premium</button>
-      </div>
+      <div class="card">
+        <div class="section-title" style="margin-top:0;">
+          <h3>📍 Telemetria & Rastreamento GPS</h3>
+          <div class="gps-status"><div class="pulse"></div> <span id="gpsStateText">Aguardando Sinal</span></div>
+        </div>
+        
+        <!-- O MAPA VISUAL SERÁ RENDERIZADO AQUI -->
+        <div id="mapContainer"></div>
 
-      <div id="gpsContent">
-        <div class="card gps-box">
-          <div class="section-title" style="margin-top:0;">
-            <h3>📍 Telemetria GPS em Tempo Real</h3>
-            <div class="gps-status"><div class="pulse"></div> <span id="gpsStateText">Aguardando...</span></div>
-          </div>
-          <div class="grid" style="margin-top:12px;">
-            <div><div class="label">Velocidade</div><div class="value blue" id="gpsSpeed">0 km/h</div></div>
-            <div><div class="label">Distância Percorrida</div><div class="value green" id="gpsDistance">0.00 km</div></div>
-            <div><div class="label">Latitude</div><div class="small" id="gpsLat">-</div></div>
-            <div><div class="label">Longitude</div><div class="small" id="gpsLng">-</div></div>
-          </div>
+        <div class="grid" style="margin-top:14px;">
+          <div><div class="label">Velocidade Atual</div><div class="value blue" id="gpsSpeed">0 km/h</div></div>
+          <div><div class="label">Distância Percorrida</div><div class="value green" id="gpsDistance">0.00 km</div></div>
         </div>
 
         <div style="margin-top:14px;" class="actions">
-          <button class="btn" id="startGpsBtn" onclick="startGps()">▶ Iniciar GPS</button>
-          <button class="btn secondary" id="stopGpsBtn" onclick="stopGps()" disabled>■ Parar GPS</button>
-        </div>
-        <div class="result" style="margin-top:12px;">
-          <b>Nota:</b> A precisão do GPS depende das permissões de localização concedidas ao navegador em seu dispositivo móvel ou PC.
+          <button class="btn" id="startGpsBtn" onclick="startGps()">▶ Iniciar Rastreio</button>
+          <button class="btn danger" id="stopGpsBtn" onclick="stopGps()" disabled>■ Parar Rastreio</button>
         </div>
       </div>
     </section>
 
-    <!-- WORK / MODO TRABALHO PAGE -->
+    <!-- WORK / MODO TRABALHO COMPLETO -->
     <section id="work" class="page section hidden">
       <div class="card">
-        <div class="section-title"><h3>🎯 Resumo de Trabalho</h3><span id="workDate"></span></div>
+        <div class="section-title"><h3>🎯 Metas do Dia</h3><span id="workDate"></span></div>
         <div class="grid">
-          <div><div class="label">Faturamento</div><div class="value green" id="wRevenue">R$ 0,00</div></div>
-          <div><div class="label">KM Percorridos</div><div class="value" id="wKm">0 km</div></div>
-          <div><div class="label">Combustível Gasto</div><div class="value yellow" id="wFuelCost">R$ 0,00</div></div>
-          <div><div class="label">Lucro Líquido</div><div class="value green" id="wNet">R$ 0,00</div></div>
+          <div><div class="label">Faturado Hoje</div><div class="value green" id="wRevenue">R$ 0,00</div><div class="small" id="targetRevText">Meta: R$ 0,00</div></div>
+          <div><div class="label">KM Rodados</div><div class="value" id="wKm">0 km</div><div class="small" id="targetKmText">Meta: 0 km</div></div>
+          <div><div class="label">Custo Combustível</div><div class="value yellow" id="wFuelCost">R$ 0,00</div><div class="small">gasto em R$</div></div>
+          <div><div class="label">Lucro Líquido Real</div><div class="value green" id="wNet">R$ 0,00</div><div class="small">descontado combustível</div></div>
         </div>
         <div class="progress"><i id="goalBar"></i></div>
-        <div class="small" id="goalText" style="margin-top:8px;">Defina sua meta diária abaixo.</div>
+        <div class="small" id="goalText" style="margin-top:8px;">Configure suas metas abaixo.</div>
       </div>
 
-      <div class="section-title"><h3>➕ Lançamento de Turno / Corrida</h3></div>
+      <div class="section-title"><h3>🎯 Configurar Metas Diárias</h3><span>defina o que quer fazer hoje</span></div>
       <div class="card form">
         <div class="row">
-          <div class="field"><label>Ganhos (R$)</label><input id="addRevenue" type="number" step="0.01" placeholder="Ex: 50"></div>
-          <div class="field"><label>KM Rodados</label><input id="addKm" type="number" step="0.1" placeholder="Ex: 20"></div>
+          <div class="field"><label>Meta Faturamento (R$)</label><input id="goalRevenue" type="number" placeholder="Ex: 300"></div>
+          <div class="field"><label>Meta Distância (KM)</label><input id="goalKm" type="number" placeholder="Ex: 200"></div>
         </div>
-        <button class="btn" onclick="addWork()">Registrar Entrada</button>
+        <div class="field"><label>Reserva / Limite Combustível (Litros)</label><input id="goalFuelLimit" type="number" step="0.1" placeholder="Ex: 15"></div>
+        <button class="btn" onclick="saveGoals()">Salvar Metas Diárias</button>
       </div>
 
-      <div class="section-title"><h3>🤖 Assistente de Abastecimento</h3></div>
-      <div id="fuelAssistant" class="notice">Carregando dados para análise de viagem...</div>
+      <div class="section-title"><h3>➕ Registrar Trabalho / Turno</h3></div>
+      <div class="card form">
+        <div class="row">
+          <div class="field"><label>Faturamento Adicionado (R$)</label><input id="addRevenue" type="number" step="0.01" placeholder="Ex: 45.00"></div>
+          <div class="field"><label>KM Percorridos</label><input id="addKm" type="number" step="0.1" placeholder="Ex: 15"></div>
+        </div>
+        <button class="btn secondary" onclick="addWork()">+ Adicionar Corrida / Turno</button>
+      </div>
     </section>
 
     <!-- CALCULATOR PAGE -->
     <section id="calc" class="page section hidden">
-      <div class="section-title"><h3>🧮 Calculadora Unificada</h3><span>Autonomia e Combustão</span></div>
-
-      <!-- Calculadora Consolidada (Sem Repetições) -->
+      <div class="section-title"><h3>🧮 Calculadora de Autonomia e Custo</h3></div>
       <div class="card form">
-        <div class="section-title"><h3>⛽ Cálculo Completo de Autonomia</h3></div>
         <div class="row">
           <div class="field"><label>Litros no Tanque</label><input id="cLiters" type="number" step="0.01" placeholder="Ex: 20"></div>
           <div class="field"><label>Consumo (km/L)</label><input id="cCons" type="number" step="0.1" placeholder="Ex: 12"></div>
         </div>
         <div class="row">
-          <div class="field"><label>KM Atual do Veículo</label><input id="cKm" type="number" placeholder="Ex: 120000"></div>
+          <div class="field"><label>KM Atual Painel</label><input id="cKm" type="number" placeholder="Ex: 120000"></div>
           <div class="field"><label>Preço/Litro (R$)</label><input id="cPrice" type="number" step="0.01" placeholder="Ex: 5.80"></div>
         </div>
-        <button class="btn" onclick="calculateUnifiedAutonomy()">Calcular Autonomia & Próxima Parada</button>
+        <button class="btn" onclick="calculateUnifiedAutonomy()">Calcular Autonomia Completa</button>
         <div id="unifiedResult" class="result hidden"></div>
-      </div>
-
-      <div class="card form" style="margin-top:14px;">
-        <div class="section-title"><h3>💰 Quanto Litros / KM com R$</h3></div>
-        <div class="row">
-          <div class="field"><label>Valor R$ Disponível</label><input id="moneyVal" type="number" step="0.01" placeholder="Ex: 50"></div>
-          <div class="field"><label>Preço/Litro (R$)</label><input id="moneyPrice" type="number" step="0.01" placeholder="Ex: 5.80"></div>
-        </div>
-        <button class="btn secondary" onclick="calcLiters()">Calcular Quantidade</button>
-        <div id="litersResult" class="result hidden"></div>
       </div>
     </section>
 
     <!-- HISTORY PAGE -->
     <section id="history" class="page section hidden">
       <div class="section-title">
-        <h3>📊 Histórico Geral</h3>
-        <button class="plan-tag plan-free" style="border:none; cursor:pointer;" onclick="clearHistory()">Limpar Histórico</button>
+        <h3>📊 Histórico de Registros</h3>
+        <button class="plan-tag plan-free" style="border:none;" onclick="clearHistory()">Limpar Tudo</button>
       </div>
       <div class="card">
-        <div id="historyList"><div class="small">Nenhum histórico registrado.</div></div>
-      </div>
-
-      <div class="section-title"><h3>⛽ Registros de Abastecimento</h3></div>
-      <div class="card">
-        <div id="refuelHistoryList"><div class="small">Nenhum abastecimento gravado.</div></div>
+        <div id="historyList"><div class="small">Nenhum registro ainda.</div></div>
       </div>
     </section>
   </main>
@@ -403,19 +370,23 @@ button { cursor: pointer; border: 0; }
   </nav>
 </div>
 
+<!-- Leaflet JS para carregar o Mapa -->
+<script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"></script>
+
 <script>
-/* CONSTANTS AND STATE MANAGEMENT */
-const STORAGE_KEY = 'fueltrack_app_v3';
+const STORAGE_KEY = 'fueltrack_v4_store';
 let authMode = 'login';
-let currentUser = null;
 let gpsWatchId = null;
 let lastGpsCoords = null;
 let totalGpsDistance = 0;
+let map = null;
+let marker = null;
+let polyline = null;
 
 const DEFAULT_STATE = {
-  user: { email: '', plan: 'free' },
-  settings: { vehicle: 'Meu Veículo', odometer: 0, fuelType: 'gasolina', price: 5.80, mixedConsumption: 12, tankLiters: 0, tankCapacity: 50, useType: 'mixed' },
-  goals: { revenue: 300, km: 250 },
+  user: { email: '', plan: 'premium' },
+  settings: { vehicle: 'Meu Veículo', odometer: 50000, fuelType: 'gasolina', price: 5.80, mixedConsumption: 12, tankLiters: 25, tankCapacity: 50, useType: 'mixed' },
+  goals: { revenue: 300, km: 200, fuelLimit: 20 },
   work: { revenue: 0, km: 0 },
   history: [],
   refuels: []
@@ -436,21 +407,19 @@ function saveState() {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(appState));
 }
 
-/* AUTHENTICATION SYSTEM */
+/* AUTHENTICATION */
 function switchAuthTab(tab) {
   authMode = tab;
   document.querySelectorAll('.auth-tab').forEach(el => el.classList.remove('active'));
   event.target.classList.add('active');
   document.getElementById('planSelectField').style.display = tab === 'register' ? 'block' : 'none';
-  document.getElementById('authBtn').textContent = tab === 'register' ? 'Criar Conta' : 'Entrar na Conta';
+  document.getElementById('authBtn').textContent = tab === 'register' ? 'Criar Conta' : 'Entrar no Sistema';
 }
 
 function handleAuth(e) {
   e.preventDefault();
   const email = document.getElementById('authEmail').value;
-  const plan = document.getElementById('authPlan').value;
-
-  appState.user = { email: email, plan: authMode === 'register' ? plan : (appState.user.plan || 'free') };
+  appState.user = { email: email, plan: 'premium' };
   saveState();
   initApp();
 }
@@ -461,34 +430,13 @@ function logout() {
   document.getElementById('authOverlay').style.display = 'flex';
 }
 
-function upgradeToPremium() {
-  appState.user.plan = 'premium';
-  saveState();
-  initApp();
-  alert('Parabéns! Você agora é um usuário PREMIUM!');
-}
-
-/* APP INIT & UI UPDATES */
+/* APP INIT */
 function initApp() {
   if (appState.user && appState.user.email) {
     document.getElementById('authOverlay').style.display = 'none';
-    
-    // Configura interface com base no plano
-    const planTag = document.getElementById('userPlanTag');
-    planTag.textContent = appState.user.plan.toUpperCase();
-    planTag.className = 'plan-tag ' + (appState.user.plan === 'premium' ? 'plan-premium' : 'plan-free');
-
-    // Restrições da aba GPS
-    if (appState.user.plan === 'premium') {
-      document.getElementById('gpsPremiumBlock').classList.add('hidden');
-      document.getElementById('gpsContent').classList.remove('hidden');
-    } else {
-      document.getElementById('gpsPremiumBlock').classList.remove('hidden');
-      document.getElementById('gpsContent').classList.add('hidden');
-    }
-
     fillForms();
     updateUI();
+    initMap();
   } else {
     document.getElementById('authOverlay').style.display = 'flex';
   }
@@ -496,6 +444,7 @@ function initApp() {
 
 function fillForms() {
   const s = appState.settings;
+  const g = appState.goals;
   document.getElementById('vehicle').value = s.vehicle;
   document.getElementById('odometer').value = s.odometer;
   document.getElementById('fuelType').value = s.fuelType;
@@ -504,6 +453,10 @@ function fillForms() {
   document.getElementById('tankCapacity').value = s.tankCapacity;
   document.getElementById('tankLiters').value = s.tankLiters;
   document.getElementById('useType').value = s.useType;
+
+  document.getElementById('goalRevenue').value = g.revenue;
+  document.getElementById('goalKm').value = g.km;
+  document.getElementById('goalFuelLimit').value = g.fuelLimit;
 }
 
 function saveSettings() {
@@ -522,8 +475,20 @@ function saveSettings() {
   alert('Configurações salvas!');
 }
 
+function saveGoals() {
+  appState.goals = {
+    revenue: parseFloat(document.getElementById('goalRevenue').value) || 0,
+    km: parseFloat(document.getElementById('goalKm').value) || 0,
+    fuelLimit: parseFloat(document.getElementById('goalFuelLimit').value) || 0
+  };
+  saveState();
+  updateUI();
+  alert('Metas diárias atualizadas!');
+}
+
 function updateUI() {
   const s = appState.settings;
+  const g = appState.goals;
   const range = s.tankLiters * s.mixedConsumption;
   const costKm = s.mixedConsumption > 0 ? s.price / s.mixedConsumption : 0;
   const estTime = range / 40;
@@ -542,162 +507,43 @@ function updateUI() {
   document.getElementById('fuelPercent').textContent = Math.round(pct) + '%';
   document.getElementById('fuelBar').style.width = pct + '%';
 
-  // Trabalho
+  // Trabalho & Metas
   const w = appState.work;
   const fuelCost = (w.km / (s.mixedConsumption || 1)) * s.price;
+  const net = w.revenue - fuelCost;
+
   document.getElementById('wRevenue').textContent = w.revenue.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
   document.getElementById('wKm').textContent = w.km.toFixed(1) + ' km';
   document.getElementById('wFuelCost').textContent = fuelCost.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-  document.getElementById('wNet').textContent = (w.revenue - fuelCost).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+  document.getElementById('wNet').textContent = net.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 
-  // Assistente Inteligente
-  const assistant = document.getElementById('fuelAssistant');
-  if (s.tankLiters <= 5) {
-    assistant.className = 'notice danger';
-    assistant.innerHTML = '⚠️ <b>Atenção:</b> Seu combustível está no nível crítico. Abasteça assim que possível.';
-  } else {
-    assistant.className = 'notice';
-    assistant.innerHTML = '🟢 <b>Autonomia Ok:</b> Você consegue rodar aproximadamente <b>' + Math.round(range) + ' km</b> com o combustível atual.';
-  }
+  document.getElementById('targetRevText').textContent = 'Meta: ' + g.revenue.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+  document.getElementById('targetKmText').textContent = 'Meta: ' + g.km + ' km';
+
+  let progressRev = g.revenue > 0 ? Math.min(100, (w.revenue / g.revenue) * 100) : 0;
+  document.getElementById('goalBar').style.width = progressRev + '%';
+  document.getElementById('goalText').textContent = `Você já concluiu ${progressRev.toFixed(0)}% da sua meta de faturamento!`;
 
   renderHistory();
 }
 
-/* ABASTECIMENTO */
-function addRefuel() {
-  const km = parseFloat(document.getElementById('refuelKm').value);
-  const liters = parseFloat(document.getElementById('refuelLiters').value);
-  const value = parseFloat(document.getElementById('refuelValue').value);
-  const fuel = document.getElementById('refuelFuel').value;
+/* MAPA E GPS EM TEMPO REAL CORRIGIDO */
+function initMap() {
+  if (map) return;
+  // Posição inicial (Padrão: Brasil Central)
+  map = L.map('mapContainer').setView([-14.235, -51.925], 4);
 
-  if (!km || !liters || !value) {
-    alert('Preencha todos os campos do abastecimento.');
-    return;
-  }
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 19,
+    attribution: '© OpenStreetMap'
+  }).addTo(map);
 
-  appState.settings.odometer = km;
-  appState.settings.tankLiters = liters;
-  appState.settings.price = value / liters;
-
-  appState.refuels.unshift({
-    date: new Date().toLocaleDateString('pt-BR'),
-    km, liters, value, fuel
-  });
-
-  saveState();
-  fillForms();
-  updateUI();
-  
-  const res = document.getElementById('refuelResult');
-  res.classList.remove('hidden');
-  res.innerHTML = '✅ Abastecimento registrado com sucesso!';
+  polyline = L.polyline([], { color: '#42e695', weight: 4 }).addTo(map);
 }
 
-/* CALCULADORA UNIFICADA */
-function calculateUnifiedAutonomy() {
-  const liters = parseFloat(document.getElementById('cLiters').value) || 0;
-  const cons = parseFloat(document.getElementById('cCons').value) || 0;
-  const km = parseFloat(document.getElementById('cKm').value) || 0;
-  const price = parseFloat(document.getElementById('cPrice').value) || 0;
-
-  const res = document.getElementById('unifiedResult');
-  res.classList.remove('hidden');
-
-  if (!liters || !cons) {
-    res.innerHTML = 'Preencha ao menos Litros e Consumo para obter o resultado.';
-    return;
-  }
-
-  const range = liters * cons;
-  const nextStop = km + range;
-  const totalCost = liters * price;
-
-  res.innerHTML = `
-    🟢 <b>Autonomia Estimada:</b> <b class="green">${range.toFixed(1)} km</b><br>
-    ${km > 0 ? `📍 <b>Próxima parada recomendada:</b> <b class="yellow">KM ${nextStop.toFixed(0)}</b><br>` : ''}
-    ${price > 0 ? `💰 <b>Custo deste tanque:</b> ${totalCost.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}` : ''}
-  `;
-}
-
-function calcLiters() {
-  const money = parseFloat(document.getElementById('moneyVal').value) || 0;
-  const price = parseFloat(document.getElementById('moneyPrice').value) || 0;
-  const res = document.getElementById('litersResult');
-  res.classList.remove('hidden');
-
-  if (!money || !price) {
-    res.innerHTML = 'Informe o valor disponível e o preço por litro.';
-    return;
-  }
-
-  const liters = money / price;
-  const range = liters * appState.settings.mixedConsumption;
-
-  res.innerHTML = `
-    ⛽ Você colocará <b>${liters.toFixed(2)} Litros</b>.<br>
-    📍 Autonomia extra: <b>~${range.toFixed(0)} km</b>.
-  `;
-}
-
-/* TRABALHO */
-function addWork() {
-  const rev = parseFloat(document.getElementById('addRevenue').value) || 0;
-  const km = parseFloat(document.getElementById('addKm').value) || 0;
-
-  appState.work.revenue += rev;
-  appState.work.km += km;
-
-  appState.history.unshift({
-    date: new Date().toLocaleDateString('pt-BR'),
-    revenue: rev, km: km
-  });
-
-  saveState();
-  updateUI();
-  document.getElementById('addRevenue').value = '';
-  document.getElementById('addKm').value = '';
-}
-
-/* HISTÓRICO */
-function renderHistory() {
-  const box = document.getElementById('historyList');
-  if (!appState.history.length) {
-    box.innerHTML = '<div class="small">Nenhum histórico registrado.</div>';
-  } else {
-    box.innerHTML = appState.history.slice(0, 10).map(x => `
-      <div class="history-item">
-        <div><b>${x.date}</b><br><small>${x.km} km rodados</small></div>
-        <div style="text-align:right"><b class="green">${x.revenue.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</b></div>
-      </div>
-    `).join('');
-  }
-
-  const refBox = document.getElementById('refuelHistoryList');
-  if (!appState.refuels.length) {
-    refBox.innerHTML = '<div class="small">Nenhum abastecimento gravado.</div>';
-  } else {
-    refBox.innerHTML = appState.refuels.slice(0, 10).map(x => `
-      <div class="history-item">
-        <div><b>${x.fuel.toUpperCase()} — ${x.liters}L</b><br><small>KM ${x.km}</small></div>
-        <div style="text-align:right"><b>${x.value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</b></div>
-      </div>
-    `).join('');
-  }
-}
-
-function clearHistory() {
-  if (confirm('Deseja realmente limpar todo o histórico?')) {
-    appState.history = [];
-    appState.refuels = [];
-    saveState();
-    updateUI();
-  }
-}
-
-/* GPS EMBUTIDO (TEMPO REAL) */
 function startGps() {
   if (!navigator.geolocation) {
-    alert('Navegador sem suporte a GPS/Localização.');
+    alert('Seu aparelho/navegador não suporta suporte a GPS.');
     return;
   }
 
@@ -708,28 +554,43 @@ function startGps() {
   gpsWatchId = navigator.geolocation.watchPosition(
     (pos) => {
       const crd = pos.coords;
-      document.getElementById('gpsStateText').textContent = 'GPS Ativo';
-      document.getElementById('gpsLat').textContent = crd.latitude.toFixed(5);
-      document.getElementById('gpsLng').textContent = crd.longitude.toFixed(5);
+      const lat = crd.latitude;
+      const lng = crd.longitude;
 
+      document.getElementById('gpsStateText').textContent = 'GPS Ativo & Rastreando';
       let speedKm = crd.speed ? (crd.speed * 3.6) : 0;
       document.getElementById('gpsSpeed').textContent = Math.round(speedKm) + ' km/h';
 
+      const currentLatLng = [lat, lng];
+
+      if (!marker) {
+        marker = L.marker(currentLatLng).addTo(map);
+        map.setView(currentLatLng, 16);
+      } else {
+        marker.setLatLng(currentLatLng);
+      }
+
+      // Evita o bug de contar parado: Só adiciona ponto se houver movimento real (> 5 metros)
       if (lastGpsCoords) {
-        let dist = calculateDistance(lastGpsCoords.latitude, lastGpsCoords.longitude, crd.latitude, crd.longitude);
-        if (dist > 0.005) { // ignora ruídos muito pequenos
+        let dist = calculateDistance(lastGpsCoords.latitude, lastGpsCoords.longitude, lat, lng);
+        if (dist >= 0.005) { // Maior ou igual a 5 metros
           totalGpsDistance += dist;
           document.getElementById('gpsDistance').textContent = totalGpsDistance.toFixed(2) + ' km';
+          polyline.addLatLng(currentLatLng);
+          map.panTo(currentLatLng);
+          lastGpsCoords = crd;
         }
+      } else {
+        polyline.addLatLng(currentLatLng);
+        lastGpsCoords = crd;
       }
-      lastGpsCoords = crd;
     },
     (err) => {
       document.getElementById('gpsStateText').textContent = 'Erro ao obter sinal';
-      alert('Acesso à localização negado ou indisponível.');
+      alert('Permissão de localização negada ou GPS desligado.');
       stopGps();
     },
-    { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+    { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
   );
 }
 
@@ -743,7 +604,7 @@ function stopGps() {
   document.getElementById('stopGpsBtn').disabled = true;
 }
 
-// Fórmula de Haversine para distância precisa
+// Haversine Fórmula
 function calculateDistance(lat1, lon1, lat2, lon2) {
   const R = 6371;
   const dLat = (lat2 - lat1) * Math.PI / 180;
@@ -755,7 +616,115 @@ function calculateDistance(lat1, lon1, lat2, lon2) {
   return R * c;
 }
 
-/* NAVEGAÇÃO POR ABAS */
+/* ABASTECIMENTO */
+function addRefuel() {
+  const km = parseFloat(document.getElementById('refuelKm').value);
+  const liters = parseFloat(document.getElementById('refuelLiters').value);
+  const value = parseFloat(document.getElementById('refuelValue').value);
+  const fuel = document.getElementById('refuelFuel').value;
+
+  if (!km || !liters || !value) {
+    alert('Preencha os dados do abastecimento.');
+    return;
+  }
+
+  appState.settings.odometer = km;
+  appState.settings.tankLiters = liters;
+  appState.settings.price = value / liters;
+
+  appState.history.unshift({
+    date: new Date().toLocaleDateString('pt-BR'),
+    type: 'Refuel',
+    desc: `Abasteceu ${liters}L (${fuel.toUpperCase()})`,
+    val: value
+  });
+
+  saveState();
+  fillForms();
+  updateUI();
+  
+  const res = document.getElementById('refuelResult');
+  res.classList.remove('hidden');
+  res.innerHTML = '✅ Abastecimento registrado com sucesso!';
+}
+
+/* CALCULADORA */
+function calculateUnifiedAutonomy() {
+  const liters = parseFloat(document.getElementById('cLiters').value) || 0;
+  const cons = parseFloat(document.getElementById('cCons').value) || 0;
+  const km = parseFloat(document.getElementById('cKm').value) || 0;
+  const price = parseFloat(document.getElementById('cPrice').value) || 0;
+
+  const res = document.getElementById('unifiedResult');
+  res.classList.remove('hidden');
+
+  if (!liters || !cons) {
+    res.innerHTML = 'Informe Litros e Consumo para calcular.';
+    return;
+  }
+
+  const range = liters * cons;
+  const nextStop = km + range;
+  const totalCost = liters * price;
+
+  res.innerHTML = `
+    🟢 <b>Autonomia total:</b> <b class="green">${range.toFixed(1)} km</b><br>
+    ${km > 0 ? `📍 <b>Próximo Abastecimento limite:</b> <b class="yellow">KM ${nextStop.toFixed(0)}</b><br>` : ''}
+    ${price > 0 ? `💰 <b>Valor estimado do Tanque:</b> ${totalCost.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}` : ''}
+  `;
+}
+
+/* TRABALHO */
+function addWork() {
+  const rev = parseFloat(document.getElementById('addRevenue').value) || 0;
+  const km = parseFloat(document.getElementById('addKm').value) || 0;
+
+  if (!rev && !km) {
+    alert('Insira o valor ou os KM da corrida.');
+    return;
+  }
+
+  appState.work.revenue += rev;
+  appState.work.km += km;
+
+  appState.history.unshift({
+    date: new Date().toLocaleDateString('pt-BR'),
+    type: 'Work',
+    desc: `Corrida/Turno (+${km} km)`,
+    val: rev
+  });
+
+  saveState();
+  updateUI();
+  document.getElementById('addRevenue').value = '';
+  document.getElementById('addKm').value = '';
+}
+
+/* HISTÓRICO */
+function renderHistory() {
+  const box = document.getElementById('historyList');
+  if (!appState.history.length) {
+    box.innerHTML = '<div class="small">Nenhum registro ainda.</div>';
+  } else {
+    box.innerHTML = appState.history.slice(0, 15).map(x => `
+      <div class="history-item">
+        <div><b>${x.desc}</b><br><small>${x.date}</small></div>
+        <div style="text-align:right"><b class="${x.type === 'Work' ? 'green' : 'yellow'}">${x.val.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</b></div>
+      </div>
+    `).join('');
+  }
+}
+
+function clearHistory() {
+  if (confirm('Deseja apagar todo o histórico?')) {
+    appState.history = [];
+    appState.work = { revenue: 0, km: 0 };
+    saveState();
+    updateUI();
+  }
+}
+
+/* NAVEGAÇÃO */
 document.querySelectorAll('[data-page]').forEach(btn => {
   btn.addEventListener('click', () => {
     const target = btn.dataset.page;
@@ -765,10 +734,13 @@ document.querySelectorAll('[data-page]').forEach(btn => {
     document.querySelectorAll('.tab, .navbtn').forEach(b => {
       b.classList.toggle('active', b.dataset.page === target);
     });
+
+    if (target === 'gps' && map) {
+      setTimeout(() => { map.invalidateSize(); }, 200);
+    }
   });
 });
 
-/* INICIALIZAÇÃO AO CARREGAR */
 document.addEventListener('DOMContentLoaded', initApp);
 </script>
 </body>
